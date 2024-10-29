@@ -1,0 +1,6 @@
+{
+    "VC_CHANNEL": "channel_id",
+    "GUILD_ID": "server_id",
+    "MUTED": false,
+    "DEAFEN": false
+}
