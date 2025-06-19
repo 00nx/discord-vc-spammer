@@ -1,49 +1,53 @@
 const axios = require('axios');
 const fs = require('fs');
-const path = require('path');
 const WebSocket = require('ws');
+const path = require('path');
 const config = require('./config.json');
 
-const filepath = './tokens.txt';
+const FILEPATH = './tokens.txt';
+const INTERVAL = 5 * 60 * 1000;
 
-function sort(filepath) {
-    const fileContent = fs.readFileSync(filepath, 'utf-8');
-    return fileContent.split('\n')
+function getTimestamp() {
+    return `[${new Date().toLocaleTimeString()}]`;
+}
+
+function readAndSortTokens(filepath) {
+    return fs.readFileSync(filepath, 'utf-8')
+        .split('\n')
         .map(line => line.trim())
         .filter(line => line.length > 0)
         .sort();
 }
 
-async function checkTokens(tokens) {
-    const validTokens = [];
-
-    for (let i = 0; i < tokens.length; i++) {
-        const token = tokens[i];
-        try {
-            const response = await axios.get('https://discord.com/api/v10/users/@me', {
-                headers: {
-                    Authorization: `${token}`
-                }
-            });
-            console.log(`Token ${i + 1} is valid:`);
-            validTokens.push(token);
-        } catch (error) {
-            if (error.response && error.response.status === 401) {
-                console.error(`Token ${i + 1} is invalid`);
-            } else {
-                console.error(`Error checking token ${i + 1}:`, error.message);
-            }
+async function checkToken(token, index) {
+    try {
+        await axios.get('https://discord.com/api/v10/users/@me', {
+            headers: { Authorization: token }
+        });
+        console.log(`${getTimestamp()} Token ${index + 1} is valid`);
+        return token;
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
+            console.error(`${getTimestamp()} Token ${index + 1} is invalid`);
+        } else {
+            console.error(`${getTimestamp()} Error checking token ${index + 1}: ${error.message}`);
         }
+        return null;
     }
-    return validTokens;
 }
 
-function ws_joiner(token, username) {
+async function validateTokens(tokens) {
+    const checks = tokens.map((token, index) => checkToken(token, index));
+    const results = await Promise.all(checks);
+    return results.filter(Boolean);
+}
+
+function wsJoin(token) {
     const ws = new WebSocket('wss://gateway.discord.gg/?v=9&encoding=json');
     const auth = {
         op: 2,
         d: {
-            token: token,
+            token,
             properties: {
                 $os: 'Linux',
                 $browser: 'Firefox',
@@ -60,32 +64,24 @@ function ws_joiner(token, username) {
             self_deaf: config.DEAFEN
         }
     };
-
     ws.on('open', () => {
         ws.send(JSON.stringify(auth));
-        ws.send(JSON.stringify(vc));
-        console.info(`\x1b[32mToken ${token} joined the voice channel successfully\x1b[0m`);
+        setTimeout(() => ws.send(JSON.stringify(vc)), 1000);
+        console.info(`${getTimestamp()} ${token.slice(0, 10)}... joined voice channel`);
     });
-
-
-    ws.on('error', console.error);
-
-    setTimeout(() => ws.close(), 300000);
+    ws.on('error', err => {
+        console.error(`${getTimestamp()} WebSocket error for ${token.slice(0, 10)}...: ${err.message}`);
+    });
+    setTimeout(() => ws.close(), INTERVAL - 1000);
 }
- 
+
 async function main() {
-    const tokens = sort(filepath);
-    const validTokens = await checkTokens(tokens);
-
-    validTokens.forEach(token => {
-        ws_joiner(token);
-    });
-
+    const tokens = readAndSortTokens(FILEPATH);
+    const validTokens = await validateTokens(tokens);
+    validTokens.forEach(wsJoin);
     setInterval(() => {
-        validTokens.forEach(token => {
-            ws_joiner(token);
-        });
-    }, 300000); 
+        validTokens.forEach(wsJoin);
+    }, INTERVAL);
 }
 
 main();
