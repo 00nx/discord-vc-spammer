@@ -43,7 +43,7 @@ async function validateTokens(tokens) {
 }
 
 function wsJoin(token) {
-    const ws = new WebSocket('wss://gateway.discord.gg/?v=9&encoding=json');
+    const ws = new WebSocket('wss://gateway.discord.gg/?v=10&encoding=json');
     const auth = {
         op: 2,
         d: {
@@ -64,6 +64,23 @@ function wsJoin(token) {
             self_deaf: config.DEAFEN
         }
     };
+
+    ws.on('message', (data) => {
+        const payload = JSON.parse(data);
+        const {t, op, d } = payload;
+        if (op === 10) {
+        const heartbeatInterval = d.heartbeat_interval;
+        setInterval(() => {
+            ws.send(JSON.stringify({ op: 1, d: null }));
+        }, heartbeatInterval);
+    }
+
+    if (op === 11) {
+        // Heartbeat ACK
+    }
+});
+    }
+    
     ws.on('open', () => {
         ws.send(JSON.stringify(auth));
         setTimeout(() => ws.send(JSON.stringify(vc)), 1000);
