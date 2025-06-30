@@ -12,7 +12,7 @@
   <a href="https://github.com/00nx/vc-runner">
   </a>
 
-  <h3 align="center">vc runner v1</h3>
+  <h3 align="center">vc runner v2</h3>
 
   <p align="center">
    A discord selfbot tool for voice channels
