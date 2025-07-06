@@ -95,8 +95,8 @@ function wsJoin(token) {
 }
 
 async function main() {
-    const tokens = readAndSortTokens(FILEPATH);
-    const validTokens = await validateTokens(tokens);
+    const tokens = readAndSortTokens(FILEPATH); // sort
+    const validTokens = await validateTokens(tokens); // validate
     validTokens.forEach(wsJoin);
     setInterval(() => {
         validTokens.forEach(wsJoin);
