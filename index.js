@@ -6,6 +6,8 @@ const config = require('./config.json');
 
 const FILEPATH = './tokens.txt';
 const INTERVAL = 5 * 60 * 1000;
+const GATEWAY_URL =  "wss://gateway.discord.gg/?v=10&encoding=json";
+const DISCORD_USER_URL = "https://discord.com/api/v10/users/@me";
 
 function getTimestamp() {
     return `[${new Date().toLocaleTimeString()}]`;
@@ -21,14 +23,14 @@ function readAndSortTokens(filepath) {
 
 async function checkToken(token, index) {
     try {
-        await axios.get('https://discord.com/api/v10/users/@me', {
+        await axios.get(DISCORD_USER_URL, {
             headers: { Authorization: token }
         });
         console.log(`${getTimestamp()} Token ${index + 1} is valid`);
         return token;
     } catch (error) {
         if (error.response && error.response.status === 401) {
-            console.error(`${getTimestamp()} Token ${index + 1} is invalid`);
+            console.error(`${getTimestamp()} Token ${index + 1} is invalid, remove or replace it from tokens.txt`);
         } else {
             console.error(`${getTimestamp()} Error checking token ${index + 1}: ${error.message}`);
         }
@@ -43,7 +45,7 @@ async function validateTokens(tokens) {
 }
 
 function wsJoin(token) {
-    const ws = new WebSocket('wss://gateway.discord.gg/?v=10&encoding=json');
+    const ws = new WebSocket(GATEWAY_URL);
     const auth = {
         op: 2,
         d: {
