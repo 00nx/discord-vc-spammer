@@ -81,7 +81,6 @@ function wsJoin(token) {
         // Heartbeat ACK
     }
 });
-    }
     
     ws.on('open', () => {
         ws.send(JSON.stringify(auth));
