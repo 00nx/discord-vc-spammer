@@ -92,6 +92,9 @@ function wsJoin(token) {
         console.error(`${getTimestamp()} WebSocket error for ${token.slice(0, 10)}...: ${err.message}`);
     });
     setTimeout(() => ws.close(), INTERVAL - 1000);
+  ws.on('close', () => {
+  console.info(`${getTimestamp()} ${token.slice(0, 10)}... disconnected`);
+});
 }
 
 async function main() {
