@@ -7,7 +7,7 @@ const config = require('./config.json');
 const FILEPATH = './tokens.txt';
 const INTERVAL = 5 * 60 * 1000;
 const GATEWAY_URL =  "wss://gateway.discord.gg/?v=10&encoding=json";
-const DISCORD_USER_URL = "https://discord.com/api/v10/users/@me";
+const DISCORD_USER_URL = "https://discord.com/api/v9/users/@me";
 
 function getTimestamp() {
     return `[${new Date().toLocaleTimeString()}]`;
@@ -106,3 +106,4 @@ async function main() {
 }
 
 main();
+
