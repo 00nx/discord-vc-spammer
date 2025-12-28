@@ -66,15 +66,6 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 
 
-<!-- CONTACT -->
-## Contact
-
-telegram - [@misjudgment](https://t.me/misjudgment)
-
-
-
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
@@ -90,3 +81,4 @@ telegram - [@misjudgment](https://t.me/misjudgment)
 [license-shield]: https://img.shields.io/github/license/00nx/vc-runner.svg?style=for-the-badge
 [license-url]: https://github.com/00nx/vc-runner/blob/master/LICENSE.txt
 [product-screenshot]: ./image.png
+
