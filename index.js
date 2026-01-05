@@ -78,7 +78,7 @@ function wsJoin(token) {
     }
 
     if (op === 11) {
-        // Heartbeat ACK
+console.log("heartbeat acknowledged");
     }
 });
     
@@ -97,8 +97,8 @@ function wsJoin(token) {
 }
 
 async function main() {
-    const tokens = readAndSortTokens(FILEPATH); // sort
-    const validTokens = await validateTokens(tokens); // validate
+    const tokens = readAndSortTokens(FILEPATH); 
+    const validTokens = await validateTokens(tokens); 
     validTokens.forEach(wsJoin);
     setInterval(() => {
         validTokens.forEach(wsJoin);
@@ -106,4 +106,5 @@ async function main() {
 }
 
 main();
+
 
