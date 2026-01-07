@@ -39,9 +39,11 @@ async function checkToken(token, index) {
 }
 
 async function validateTokens(tokens) {
-    const checks = tokens.map((token, index) => checkToken(token, index));
-    const results = await Promise.all(checks);
-    return results.filter(Boolean);
+    console.log(`${getTimestamp()} Validating ${tokens.length} tokens...`);
+    const results = await Promise.all(tokens.map((token, index) => checkToken(token, index)));
+    const validTokens = tokens.filter((_, i) => results[i] !== null);
+    console.log(`${getTimestamp()} ${validTokens.length}/${tokens.length} tokens are valid.`);
+    return validTokens;
 }
 
 function wsJoin(token) {
@@ -106,5 +108,6 @@ async function main() {
 }
 
 main();
+
 
 
