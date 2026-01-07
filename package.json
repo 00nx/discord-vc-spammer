@@ -1,7 +1,7 @@
 {
   "name": "vc-runner",
   "version": "1.0.0",
-  "description": "Discord mass VC joiner (self-bot)",
+  "description": "Discord mass VC joiner",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
