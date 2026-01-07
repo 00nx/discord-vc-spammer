@@ -47,55 +47,72 @@ async function validateTokens(tokens) {
 }
 
 function wsJoin(token) {
-    const ws = new WebSocket(GATEWAY_URL);
+    let ws = new WebSocket(GATEWAY_URL);
+    let heartbeatInterval = null;
+    let sequence = null;
+
     const auth = {
         op: 2,
         d: {
             token,
             properties: {
-                $os: 'Linux',
-                $browser: 'Firefox',
-                $device: 'desktop'
+                os: 'Linux',
+                browser: 'Firefox',
+                device: 'desktop'
             }
         }
     };
+
     const vc = {
         op: 4,
         d: {
             guild_id: config.GUILD_ID,
             channel_id: config.VC_CHANNEL,
-            self_mute: config.MUTED,
-            self_deaf: config.DEAFEN
+            self_mute: !!config.MUTED,
+            self_deaf: !!config.DEAFEN
         }
     };
 
-    ws.on('message', (data) => {
-        const payload = JSON.parse(data);
-        const {t, op, d } = payload;
-        if (op === 10) {
-        const heartbeatInterval = d.heartbeat_interval;
-        setInterval(() => {
-            ws.send(JSON.stringify({ op: 1, d: null }));
-        }, heartbeatInterval);
-    }
-
-    if (op === 11) {
-console.log("heartbeat acknowledged");
-    }
-});
-    
     ws.on('open', () => {
         ws.send(JSON.stringify(auth));
-        setTimeout(() => ws.send(JSON.stringify(vc)), 1000);
-        console.info(`${getTimestamp()} ${token.slice(0, 10)}... joined voice channel`);
+        console.info(`${getTimestamp()} ${token.slice(0, 10)}... connected and identified`);
     });
-    ws.on('error', err => {
-        console.error(`${getTimestamp()} WebSocket error for ${token.slice(0, 10)}...: ${err.message}`);
+
+    ws.on('message', (data) => {
+        try {
+            const payload = JSON.parse(data);
+            const { op, t, s, d } = payload;
+            if (s) sequence = s;
+
+            if (op === 10) { // Hello
+                const interval = d.heartbeat_interval * 0.9; // slight jitter
+                if (heartbeatInterval) clearInterval(heartbeatInterval);
+                heartbeatInterval = setInterval(() => {
+                    ws.send(JSON.stringify({ op: 1, d: sequence }));
+                }, interval);
+
+                // Join voice shortly after identify
+                setTimeout(() => {
+                    ws.send(JSON.stringify(vc));
+                    console.info(`${getTimestamp()} ${token.slice(0, 10)}... joined voice channel`);
+                }, 2000);
+            }
+        } catch (e) {
+            console.error(`${getTimestamp()} Parse error:`, e.message);
+        }
     });
-    setTimeout(() => ws.close(), INTERVAL - 1000);
-  ws.on('close', () => {
-  console.info(`${getTimestamp()} ${token.slice(0, 10)}... disconnected`);
-});
+
+    ws.on('close', (code) => {
+        console.info(`${getTimestamp()} ${token.slice(0, 10)}... disconnected (${code}), reconnecting in 5-10s...`);
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        ws = null;
+        // Auto-reconnect
+        setTimeout(() => wsJoin(token), 5000 + Math.random() * 5000);
+    });
+
+    ws.on('error', (err) => {
+        console.error(`${getTimestamp()} WS Error (${token.slice(0, 10)}...): ${err.message}`);
+    });
 }
 
 async function main() {
@@ -108,6 +125,7 @@ async function main() {
 }
 
 main();
+
 
 
 
