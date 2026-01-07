@@ -17,8 +17,7 @@ function readAndSortTokens(filepath) {
     return fs.readFileSync(filepath, 'utf-8')
         .split('\n')
         .map(line => line.trim())
-        .filter(line => line.length > 0)
-        .sort();
+        .filter(line => line.length > 0);
 }
 
 async function checkToken(token, index) {
@@ -125,6 +124,7 @@ async function main() {
 }
 
 main();
+
 
 
 
