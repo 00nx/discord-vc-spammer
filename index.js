@@ -115,15 +115,36 @@ function wsJoin(token) {
 }
 
 async function main() {
-    const tokens = readAndSortTokens(FILEPATH); 
-    const validTokens = await validateTokens(tokens); 
-    validTokens.forEach(wsJoin);
-    setInterval(() => {
-        validTokens.forEach(wsJoin);
-    }, INTERVAL);
+    if (!fs.existsSync(FILEPATH)) {
+        console.error(`${getTimestamp()} tokens.txt not found!`);
+        return;
+    }
+
+    const tokens = readAndSortTokens(FILEPATH);
+    if (tokens.length === 0) {
+        console.error(`${getTimestamp()} No tokens in tokens.txt`);
+        return;
+    }
+
+    const validTokens = await validateTokens(tokens);
+    if (validTokens.length === 0) {
+        console.error(`${getTimestamp()} No valid tokens found. Exiting.`);
+        return;
+    }
+
+    console.log(`${getTimestamp()} Starting ${validTokens.length} voice connections with stagger...`);
+
+    // Staggered join to avoid rate limits
+    validTokens.forEach((token, index) => {
+        setTimeout(() => {
+            wsJoin(token);
+        }, index * 2000); // 2-second delay between each account
+    });
 }
 
+
 main();
+
 
 
 
